@@ -6,6 +6,8 @@ import (
 	"log"
 	"net"
 	"strings"
+
+	"Servus/internal/request"
 )
 
 func getLinesChannel(f io.ReadCloser) <- chan string {
@@ -56,10 +58,13 @@ func main() {
 
 		fmt.Println("Connection accepted...")
 		
-		ch := getLinesChannel(connection)
-		for line := range ch {
-			fmt.Printf("%s\n", line)
-		}
+		//ch := getLinesChannel(connection)
+		//for line := range ch {
+		//	fmt.Printf("%s\n", line)
+		//}
+
+		req, err := request.RequestFromReader(connection)
+		req.PrintRequestLine()
 
 		fmt.Println("Connection closed...")
 	}

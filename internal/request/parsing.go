@@ -75,7 +75,7 @@ func parseRequestLine(reqLineByteSlice []byte) (*RequestLine, int, error) {
 		return nil, 0, fmt.Errorf("http version must be HTTP/1.1")
 	}
 
-	reqLineStruct.HttpVersion = strings.Replace(httpVersion, "HTTP/", "", -1)
+	reqLineStruct.HttpVersion = strings.ReplaceAll(httpVersion, "HTTP/", "")
 
 	// +2 for the \r\n chars
 	return &reqLineStruct, len(reqLine) + 2, nil

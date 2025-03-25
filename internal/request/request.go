@@ -25,6 +25,9 @@ type Request struct {
 }
 
 func (r *Request) parse(data []byte) (int, error) {
+	/*
+	* returns the numbers of bytes parsed
+	*/
 	switch r.ParserState {
 	case stateInitialized:
 		reqLine, n, err := parseRequestLine(data)
@@ -44,6 +47,13 @@ func (r *Request) parse(data []byte) (int, error) {
 	default:
 		return 0, fmt.Errorf("unknown parser state")
 	}
+}
+
+func (r *Request) PrintRequestLine() {
+	fmt.Println("Request line:")
+	fmt.Printf("- Method: %s\n", r.RequestLine.Method)
+	fmt.Printf("- Target: %s\n", r.RequestLine.RequestTarget)
+	fmt.Printf("- Version: %s\n", r.RequestLine.HttpVersion)
 }
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
