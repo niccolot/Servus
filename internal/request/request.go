@@ -1,15 +1,17 @@
 package request
 
 import (
+	"errors"
 	"fmt"
 	"io"
-	"strings"
-	"unicode"
 )
 
-type Request struct {
-	RequestLine RequestLine
-}
+type parserStateType int
+
+const (
+	stateInitialized parserStateType = iota
+	stateDone
+)
 
 type RequestLine struct {
 	HttpVersion   string
@@ -17,45 +19,60 @@ type RequestLine struct {
 	Method        string
 }
 
-func isUpper(s string) bool {
-	for _, c := range s {
-		if !unicode.IsUpper(c) && unicode.IsLetter(c) {
-			return false
-		}
-	}
+type Request struct {
+	RequestLine RequestLine
+	ParserState parserStateType
+}
 
-	return true
+func (r *Request) parse(data []byte) (int, error) {
+	switch r.ParserState {
+	case stateInitialized:
+		reqLine, n, err := parseRequestLine(data)
+		if err != nil {
+			return 0, err
+		} else if n == 0 {
+			return n, nil
+		} else {
+			r.RequestLine = *reqLine
+			r.ParserState = stateDone
+			return n, nil
+		}
+	
+	case stateDone:
+		return 0, fmt.Errorf("already done parsing")
+	
+	default:
+		return 0, fmt.Errorf("unknown parser state")
+	}
 }
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
-	reqByteSlice, err := io.ReadAll(reader)
-	if err != nil {
-		return nil, err
+	buffer := make([]byte, 8)
+	readToIndex := 0
+	reqStruct := Request{
+		ParserState: stateInitialized,
 	}
+	
+	for reqStruct.ParserState != stateDone {
+		if len(buffer) == cap(buffer) {
+			buffer = growBuffer(buffer)
+		}
 
-	reqString := string(reqByteSlice)
-	reqParts := strings.Split(reqString, "\r\n")
-	reqLine := reqParts[0]
-	reqLineParts := strings.Split(reqLine, " ")
+		n, err:= reader.Read(buffer[readToIndex:])
+		if errors.Is(err, io.EOF) {
+			reqStruct.ParserState = stateDone
+			break
+		}
 
-	reqStruct := Request{}
-	method := reqLineParts[0]
-	if !isUpper(method) {
-		return nil, fmt.Errorf("method must be capitalized in request line")
+		readToIndex += n
+		parsedBytes, err := reqStruct.parse(buffer[:readToIndex])
+		if err != nil {
+			return nil, err
+		}
+
+		buffer = shrinkBuffer(buffer, parsedBytes)
+		readToIndex -= parsedBytes
 	}
-
-	reqStruct.RequestLine.Method = method
-
-	// to do: validate target
-	reqStruct.RequestLine.RequestTarget = reqLineParts[1]
-
-	httpVersion := reqLineParts[2]
-	if httpVersion != "HTTP/1.1" {
-		return nil, fmt.Errorf("http version must be HTTP/1.1")
-	}
-
-	reqStruct.RequestLine.HttpVersion = strings.Replace(httpVersion, "HTTP/", "", -1)
-	fmt.Println(reqStruct.RequestLine.HttpVersion)
 
 	return &reqStruct, nil
 }
