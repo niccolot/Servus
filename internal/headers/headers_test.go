@@ -78,6 +78,15 @@ func TestHeaderParser(t *testing.T) {
 	assert.Equal(t, 25, n2) 
 	assert.False(t, done)
 
+	headers = Headers{}
+	data = []byte("\r\n a bunch of other stuff")
+	n, done, err = headers.Parse(data)
+	require.NoError(t, err)
+	require.NotNil(t, headers)
+	assert.Empty(t, headers)
+	assert.Equal(t, 2, n)
+	assert.True(t, done)
+
 	// test: empty field
 	headers = Headers{}
 	data = []byte("Host:\r\n\r\n")

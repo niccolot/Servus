@@ -1,13 +1,13 @@
 package request
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
 func TestRequestLineParser(t *testing.T) {
+	
 	// test: good GET request line
 	reader := &chunkReader{
 		data: "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
@@ -15,7 +15,6 @@ func TestRequestLineParser(t *testing.T) {
 	}
 
 	r, err := RequestFromReader(reader)
-	os.Stdout.Sync()
 	require.NoError(t, err)
 	require.NotNil(t, r)
 	require.Equal(t, "GET", r.RequestLine.Method)
@@ -90,6 +89,28 @@ func TestRequestLineParser(t *testing.T) {
 	reader = &chunkReader{
 		data: "GET / coffee HTTP/1.0\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
 		numBytesPerRead: len(reader.data),
+	}
+	_, err = RequestFromReader(reader)
+	require.Error(t, err)
+}
+
+func TestHeadersParser(t *testing.T) {
+	// test: standard headers
+	reader := &chunkReader{
+		data: "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
+		numBytesPerRead: 3,
+	}
+	r, err := RequestFromReader(reader)
+	require.NoError(t, err)
+	require.NotNil(t, r)
+	require.Equal(t, "localhost:42069", r.Headers["host"])
+	require.Equal(t, "curl/7.81.0", r.Headers["user-agent"])
+	require.Equal(t, "*/*", r.Headers["accept"])
+
+	// test: malformed header
+	reader = &chunkReader{
+		data: "GET / HTTP/1.1\r\nHost localhost:42069\r\n\r\n",
+		numBytesPerRead: 3,
 	}
 	_, err = RequestFromReader(reader)
 	require.Error(t, err)
