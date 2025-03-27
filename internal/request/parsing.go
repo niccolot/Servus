@@ -20,27 +20,16 @@ func isMethodValid(method string) bool {
 	return ok
 }
 
-//func growBuffer(buffer []byte) []byte {
-//	/*
-//	* doubles the buffer size
-//	*/
-//	prevSize := cap(buffer)
-//	newBuffer := make([]byte, prevSize, 2*prevSize)
-//	copy(newBuffer, buffer)
-//
-//	return newBuffer
-//}
-//
-//func shrinkBuffer(bufffer []byte, parsedBytes int) []byte {
-//	/*
-//	* removes the parsed bytes from the buffer
-//	*/
-//	prevSize := cap(bufffer)
-//	newBuffer := make([]byte, prevSize - parsedBytes)
-//	copy(newBuffer, bufffer[parsedBytes:])
-//
-//	return newBuffer
-//}
+func growBuffer(buffer []byte) []byte {
+	/*
+	* doubles the buffer size
+	*/
+	prevSize := len(buffer)
+	newBuffer := make([]byte, 2 * prevSize)
+	copy(newBuffer, buffer)
+
+	return newBuffer
+}
 
 func parseRequestLine(reqLineByteSlice []byte) (*RequestLine, int, error) {
 	reqString := string(reqLineByteSlice)

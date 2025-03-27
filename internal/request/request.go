@@ -83,11 +83,15 @@ func (r *Request) parseSingle(data []byte) (int, error) {
 	}
 }
 
-func (r *Request) PrintRequestLine() {
+func (r *Request) PrintRequest() {
 	fmt.Println("Request line:")
 	fmt.Printf("- Method: %s\n", r.RequestLine.Method)
 	fmt.Printf("- Target: %s\n", r.RequestLine.RequestTarget)
 	fmt.Printf("- Version: %s\n", r.RequestLine.HttpVersion)
+	fmt.Println("Headers:")
+	for header, value := range r.Headers {
+		fmt.Printf("- %s: %s\n", header, value)
+	}
 }
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
@@ -99,11 +103,8 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 	}
 	
 	for reqStruct.ParserState != stateDone {
-		// double the buffer size if we reached full capacity
 		if readToIndex >= len(buffer) {
-			newBuf := make([]byte, 2 * len(buffer))
-			copy(newBuf, buffer)
-			buffer = newBuf
+			buffer = growBuffer(buffer)
 		}
 
 		n, err:= reader.Read(buffer[readToIndex:])
@@ -125,6 +126,8 @@ func RequestFromReader(reader io.Reader) (*Request, error) {
 			return nil, err
 		}
 
+		// overwrite the already parsed data with the data
+		// to be processed to avoid growing the buffer too much
 		copy(buffer, buffer[parsedBytes:])
 		readToIndex -= parsedBytes
 	}
