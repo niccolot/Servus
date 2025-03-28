@@ -7,7 +7,6 @@ import (
 )
 
 func TestRequestLineParser(t *testing.T) {
-	
 	// test: good GET request line
 	reader := &chunkReader{
 		data: "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
@@ -113,5 +112,70 @@ func TestHeadersParser(t *testing.T) {
 		numBytesPerRead: 3,
 	}
 	_, err = RequestFromReader(reader)
+	require.Error(t, err)
+}
+
+func TestBodyParser(t *testing.T) {
+//	// test: standard body
+//	reader := &chunkReader{
+//		data: "POST /submit HTTP/1.1\r\n" +
+//			"Host: localhost: 42069\r\n" +
+//			"Content-Length: 13\r\n" +
+//			"\r\n" +
+//			"hello world!\n",
+//		numBytesPerRead: 3,
+//	}
+//	r, err := RequestFromReader(reader)
+//	require.NoError(t, err)
+//	require.NotNil(t, r)
+//	require.Equal(t, "hello world!\n", string(r.Body))
+//
+//	// test: no body, 'Content-Length: 0'
+//	reader = &chunkReader{
+//		data: "POST /submit HTTP/1.1\r\n" +
+//			"Host: localhost: 42069\r\n" +
+//			"Content-Length: 0\r\n" +
+//			"\r\n",
+//		numBytesPerRead: 3,
+//	}
+//	r, err = RequestFromReader(reader)
+//	require.NoError(t, err)
+//	require.NotNil(t, r)
+//	require.Equal(t, "", string(r.Body))
+//
+//	// test: no body, no 'Content-Length'
+//	reader = &chunkReader{
+//		data: "POST /submit HTTP/1.1\r\n" +
+//			"Host: localhost: 42069\r\n" +
+//			"\r\n",
+//		numBytesPerRead: 3,
+//	}
+//	r, err = RequestFromReader(reader)
+//	require.NoError(t, err)
+//	require.NotNil(t, r)
+//	require.Equal(t, "", string(r.Body))
+//
+//	// test: body shorter than 'Content-Length'
+//	reader = &chunkReader{
+//		data: "POST /submit HTTP/1.1\r\n" +
+//			"Host: localhost: 42069\r\n" +
+//			"Content-Length: 13\r\n" +
+//			"\r\n" +
+//			"hello wo\n",
+//		numBytesPerRead: 3,
+//	}
+//	_, err = RequestFromReader(reader)
+//	require.Error(t, err)
+//
+//	// test: body longer than 'Content-Length'
+	reader := &chunkReader{
+		data: "POST /submit HTTP/1.1\r\n" +
+			"Host: localhost: 42069\r\n" +
+			"Content-Length: 13\r\n" +
+			"\r\n" +
+			"hello world!!!!!!\n",
+		numBytesPerRead: 1,
+	}
+	_, err := RequestFromReader(reader)
 	require.Error(t, err)
 }

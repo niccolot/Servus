@@ -12,6 +12,8 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 	/*
 	* reads up to len(p) or numBytesPerRead bytes from the string per call
 	* @return n: bytes read
+	*
+	* used to simulate a stream of bytes during tesing
 	*/
 	if cr.pos >= len(cr.data) {
 		return 0, io.EOF

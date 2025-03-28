@@ -42,15 +42,25 @@ func (h* Headers) Parse(data []byte) (n int, done bool, err error) {
 		return 0, false, fmt.Errorf("invalid header token: %s", key)
 	}
 
-	prevVal, ok := (*h)[key]
+	h.Add(key, value)
+	
+	// +2 for \r\n
+	return crlfIndex + 2, false, nil
+}
+
+func (h* Headers) Add(key, value string) {
+	prevVal, ok := h.Get(key)
 	if ok {
 		(*h)[key] = prevVal + ", " + value
 	} else {
 		(*h)[key] = value
 	}
-	
-	// +2 for \r\n
-	return crlfIndex + 2, false, nil
+}
+
+func (h *Headers) Get(key string) (string, bool) {
+	val, ok := (*h)[strings.ToLower(key)]
+
+	return val, ok
 }
 
 func isValidHeaderFieldName(s string) bool {
