@@ -30,7 +30,7 @@ type Request struct {
 	Headers headers.Headers
 	parserState parserStateType
 	Body []byte
-	ContentLength int
+	contentLength int
 }
 
 func (r *Request) parse(data []byte) (int, error) {
@@ -39,7 +39,6 @@ func (r *Request) parse(data []byte) (int, error) {
 	*/
 	totalBytesParsed := 0
 	for r.parserState != stateDone {
-		fmt.Println("data: ", string(data[totalBytesParsed:]))
 		n, err := r.parseSingle(data[totalBytesParsed:])
 		if err != nil {
 			return 0, err
@@ -83,7 +82,7 @@ func (r *Request) parseSingle(data []byte) (int, error) {
 					return 0, fmt.Errorf("failed to parse 'Content-length' header value: %v", err)
 				}
 				r.Body = make([]byte, 0, cLength)
-				r.ContentLength = cLength
+				r.contentLength = cLength
 			}
 
 			r.parserState = stateParsingBody
@@ -101,19 +100,16 @@ func (r *Request) parseSingle(data []byte) (int, error) {
 			return 0, nil
 		}
 
-		//fmt.Println("len body + len data: ", len(r.Body) + len(data))
-		if len(r.Body) + len(data) > r.ContentLength {
+		r.Body = append(r.Body, data...)		
+		if len(r.Body) > r.contentLength {
 			return 0, fmt.Errorf("actual body size greater than 'Content-Length' header value")
 		}
 
-		r.Body = append(r.Body, data...)		
-
-		if len(r.Body) == r.ContentLength {
-			fmt.Println("Request fully parsed")
+		if len(r.Body) == r.contentLength {
 			r.parserState = stateDone
 		}
 
-		
+
 		return len(data), nil
 		
 	case stateDone:
@@ -133,6 +129,8 @@ func (r *Request) PrintRequest() {
 	for header, value := range r.Headers {
 		fmt.Printf("- %s: %s\n", header, value)
 	}
+	fmt.Println("Body:")
+	fmt.Println(string(r.Body))
 }
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
@@ -197,8 +195,7 @@ func growBuffer(buffer []byte) []byte {
 	/*
 	* doubles the buffer size
 	*/
-	prevSize := len(buffer)
-	newBuffer := make([]byte, 2 * prevSize)
+	newBuffer := make([]byte, 2 * len(buffer))
 	copy(newBuffer, buffer)
 
 	return newBuffer
