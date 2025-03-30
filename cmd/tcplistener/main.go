@@ -30,7 +30,7 @@ func main() {
 		}
 
 		req.PrintRequest()
-
+		connection.Close()
 		fmt.Println("Connection closed...")
 	}
 }
