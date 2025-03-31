@@ -19,7 +19,7 @@ const (
 
 type Response struct {
 	Code StatusCode
-	Message string
+	Message []byte
 	Headers headers.Headers
 }
 
@@ -114,7 +114,7 @@ func (w *Writer) WriteResponse() (int, error) {
 		return 0, err
 	}
 
-	n, err := w.WriteBody([]byte(w.Response.Message)) 
+	n, err := w.WriteBody(w.Response.Message) 
 	if err != nil {
 		return 0, err
 	}

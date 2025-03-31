@@ -50,7 +50,7 @@ func (s *Server) handle(conn net.Conn) {
 		headers := headers.GetDefaultHeaders(len(err.Error()))
 		resp := response.Response{
 			Code: response.CodeBadRequest,
-			Message: err.Error(),
+			Message: []byte(err.Error()),
 			Headers: headers,
 		}
 

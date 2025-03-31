@@ -5,12 +5,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"fmt"
 
-	"Servus/internal/headers"
 	"Servus/internal/request"
 	"Servus/internal/response"
 	"Servus/internal/server"
+	"Servus/internal/html"
 )
 
 const port = 42069
@@ -21,22 +20,41 @@ func handler(w *response.Writer, req *request.Request) {
 	}
 
 	if req.RequestLine.RequestTarget == "/yourproblem" {
-		w.Response.Code = 400
-		w.Response.Message = "Your problem is not my problem\n"
-		w.Response.Headers = headers.Headers{}
-		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+		//w.Response.Code = 400
+		//w.Response.Message = []byte("Your problem is not my problem\n")
+		fileName := "cmd/httpserver/assets/req_badRequest.html"
+		//status, body, err := html.ExtractTitleAndBodyFromFile(fileName)
+		//if err != nil {
+		//	log.Fatalf("failed to parse html")
+		//}
+		//code, err := html.ExtractCode(status)
+		//if err != nil {
+		//	log.Fatalf("failed to parse status code")
+		//}
+//
+		//w.Response.Code = response.StatusCode(code)
+		//w.Response.Message = body
+		//w.Response.Headers = headers.Headers{}
+		//w.Response.Headers.AddOverride("Content-Type", "text/html")
+		//w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+		err := html.WriteResponse(w, fileName)
+		if err != nil {
+			log.Fatalf("failed to write response: %v", err)
+		}
 
 	} else if req.RequestLine.RequestTarget == "/myproblem" {
-		w.Response.Code = 500
-		w.Response.Message = "Woopsie, my bad\n"
-		w.Response.Headers = headers.Headers{}
-		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+		fileName := "cmd/httpserver/assets/req_internalErr.html"
+		err := html.WriteResponse(w, fileName)
+		if err != nil {
+			log.Fatalf("failed to write response: %v", err)
+		}
 
 	} else {
-		w.Response.Code = 200
-		w.Response.Message = "All good, frfr\n"
-		w.Response.Headers = headers.Headers{}
-		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+		fileName := "cmd/httpserver/assets/req_success.html"
+		err := html.WriteResponse(w, fileName)
+		if err != nil {
+			log.Fatalf("failed to write response: %v", err)
+		}
 	}
 
 	w.WriteResponse()
