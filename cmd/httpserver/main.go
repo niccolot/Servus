@@ -1,12 +1,13 @@
 package main
 
 import (
-	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"fmt"
 
+	"Servus/internal/headers"
 	"Servus/internal/request"
 	"Servus/internal/response"
 	"Servus/internal/server"
@@ -14,22 +15,31 @@ import (
 
 const port = 42069
 
-func handler(w io.Writer, req *request.Request) *response.Response {
-	handlerErr := response.Response{}
-	if req.RequestLine.RequestTarget == "/yourproblem" {
-		handlerErr.Code = 400
-		handlerErr.Message = "Your problem is not my problem\n"
-		return &handlerErr
-	} else if req.RequestLine.RequestTarget == "/myproblem" {
-		handlerErr.Code = 500
-		handlerErr.Message = "Woopsie, my bad\n"
-		return &handlerErr
-	} else {
-		handlerErr.Code = 200
-		handlerErr.Message = "All good, frfr\n"
-		handlerErr.WriteHandlerError(w)
-		return &handlerErr
+func handler(w *response.Writer, req *request.Request) {
+	if w.Response == nil {
+		w.Response = &response.Response{}
 	}
+
+	if req.RequestLine.RequestTarget == "/yourproblem" {
+		w.Response.Code = 400
+		w.Response.Message = "Your problem is not my problem\n"
+		w.Response.Headers = headers.Headers{}
+		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+
+	} else if req.RequestLine.RequestTarget == "/myproblem" {
+		w.Response.Code = 500
+		w.Response.Message = "Woopsie, my bad\n"
+		w.Response.Headers = headers.Headers{}
+		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+
+	} else {
+		w.Response.Code = 200
+		w.Response.Message = "All good, frfr\n"
+		w.Response.Headers = headers.Headers{}
+		w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
+	}
+
+	w.WriteResponse()
 }
 
 func main() {

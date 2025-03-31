@@ -49,6 +49,10 @@ func (h* Headers) Parse(data []byte) (n int, done bool, err error) {
 }
 
 func (h* Headers) Add(key, value string) {
+	/*
+	*@brief: add a (key,value) pair and append the additional value
+	* if key is already present
+	*/
 	prevVal, ok := h.Get(key)
 	if ok {
 		(*h)[key] = prevVal + ", " + value
@@ -57,10 +61,27 @@ func (h* Headers) Add(key, value string) {
 	}
 }
 
+func (h* Headers) AddOverride(key, value string) {
+	/*
+	*@brief: add a (key, value) pair overriding an eventual
+	* preexisting value
+	*/
+	(*h)[key] = value
+}
+
 func (h *Headers) Get(key string) (string, bool) {
 	val, ok := (*h)[strings.ToLower(key)]
 
 	return val, ok
+}
+
+func GetDefaultHeaders(contentLen int) Headers {
+	headers := Headers{}
+	headers.Add("Content-Length", fmt.Sprint(contentLen))
+	headers.Add("Connection", "close")
+	headers.Add("Content-Type", "text/plain")
+
+	return headers
 }
 
 func isValidHeaderFieldName(s string) bool {

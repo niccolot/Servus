@@ -1,13 +1,13 @@
 package server
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"net"
 
 	"sync/atomic"
 
+	"Servus/internal/headers"
 	"Servus/internal/request"
 	"Servus/internal/response"
 )
@@ -47,27 +47,21 @@ func (s *Server) handle(conn net.Conn) {
 
 	req, err := request.RequestFromReader(conn)
 	if err != nil {
-		handlerErr := response.Response{
+		headers := headers.GetDefaultHeaders(len(err.Error()))
+		resp := response.Response{
 			Code: response.CodeBadRequest,
 			Message: err.Error(),
+			Headers: headers,
 		}
 
-		handlerErr.WriteHandlerError(conn)
+		respWriter := response.NewResponseWriter(conn)
+		respWriter.Response = &resp
+		respWriter.WriteResponse()
 		return
 	}
 
-	buffer := bytes.NewBuffer([]byte{})
-	handlerErr := s.handlerFunc(buffer, req)
-	if handlerErr != nil {
-		handlerErr.WriteHandlerError(conn)
-		return
-	}
-
-	data := buffer.Bytes()
-	response.WriteStatusLine(conn, response.CodeOK)
-	respHeaders := response.GetDefaultHeaders(len(data))
-	response.WriteHeaders(conn, respHeaders)
-	conn.Write(data)
+	respWriter := response.NewResponseWriter(conn)
+	s.handlerFunc(&respWriter, req)
 }
 
 func Serve(port int, handler response.Handler) (*Server, error) {
