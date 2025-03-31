@@ -8,28 +8,28 @@ import (
 	"syscall"
 
 	"Servus/internal/request"
+	"Servus/internal/response"
 	"Servus/internal/server"
 )
 
 const port = 42069
 
-func handler(w io.Writer, req *request.Request) *server.HandlerError {
-	handlerErr := server.HandlerError{}
+func handler(w io.Writer, req *request.Request) *response.Response {
+	handlerErr := response.Response{}
 	if req.RequestLine.RequestTarget == "/yourproblem" {
 		handlerErr.Code = 400
 		handlerErr.Message = "Your problem is not my problem\n"
-		handlerErr.WriteHandlerError(w)
+		return &handlerErr
 	} else if req.RequestLine.RequestTarget == "/myproblem" {
 		handlerErr.Code = 500
 		handlerErr.Message = "Woopsie, my bad\n"
-		handlerErr.WriteHandlerError(w)
+		return &handlerErr
 	} else {
 		handlerErr.Code = 200
 		handlerErr.Message = "All good, frfr\n"
 		handlerErr.WriteHandlerError(w)
+		return &handlerErr
 	}
-
-	return &handlerErr
 }
 
 func main() {

@@ -16,7 +16,7 @@ type Server struct {
 	Port int
 	closed atomic.Bool
 	listener net.Listener
-	handlerFunc Handler
+	handlerFunc response.Handler
 }
 
 func (s *Server) listen() {
@@ -47,7 +47,7 @@ func (s *Server) handle(conn net.Conn) {
 
 	req, err := request.RequestFromReader(conn)
 	if err != nil {
-		handlerErr := HandlerError{
+		handlerErr := response.Response{
 			Code: response.CodeBadRequest,
 			Message: err.Error(),
 		}
@@ -70,7 +70,7 @@ func (s *Server) handle(conn net.Conn) {
 	conn.Write(data)
 }
 
-func Serve(port int, handler Handler) (*Server, error) {
+func Serve(port int, handler response.Handler) (*Server, error) {
 	l, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return nil, err

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"Servus/internal/headers"
+	"Servus/internal/request"
 )
 
 type StatusCode int
@@ -15,6 +16,20 @@ const (
 	CodeBadRequest StatusCode = 400
 	CodeInternalServerError StatusCode = 500
 )
+
+type Response struct {
+	Code StatusCode
+	Message string
+}
+
+func (r *Response) WriteHandlerError(w io.Writer) {
+	WriteStatusLine(w, r.Code)
+	headers := GetDefaultHeaders(len(r.Message))
+	WriteHeaders(w, headers)
+	w.Write([]byte(r.Message))
+}
+
+type Handler func(w io.Writer, req *request.Request) *Response 
 
 func WriteStatusLine(w io.Writer, statusCode StatusCode) error {
 	var err error
