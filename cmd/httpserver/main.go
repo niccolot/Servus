@@ -20,23 +20,7 @@ func handler(w *response.Writer, req *request.Request) {
 	}
 
 	if req.RequestLine.RequestTarget == "/yourproblem" {
-		//w.Response.Code = 400
-		//w.Response.Message = []byte("Your problem is not my problem\n")
 		fileName := "cmd/httpserver/assets/req_badRequest.html"
-		//status, body, err := html.ExtractTitleAndBodyFromFile(fileName)
-		//if err != nil {
-		//	log.Fatalf("failed to parse html")
-		//}
-		//code, err := html.ExtractCode(status)
-		//if err != nil {
-		//	log.Fatalf("failed to parse status code")
-		//}
-//
-		//w.Response.Code = response.StatusCode(code)
-		//w.Response.Message = body
-		//w.Response.Headers = headers.Headers{}
-		//w.Response.Headers.AddOverride("Content-Type", "text/html")
-		//w.Response.Headers.AddOverride("Content-Length", fmt.Sprint(len(w.Response.Message)))
 		err := html.WriteResponse(w, fileName)
 		if err != nil {
 			log.Fatalf("failed to write response: %v", err)

@@ -40,7 +40,6 @@ func extractTitleAndBodyFromFile(htmlFile string) (string, []byte, error) {
 	}
 	defer file.Close()
 
-	// Read file contents
 	content, err := io.ReadAll(file)
 	if err != nil {
 		return "", []byte{}, fmt.Errorf("Error reading file:", err)
